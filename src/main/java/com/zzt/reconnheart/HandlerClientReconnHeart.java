@@ -5,6 +5,8 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.CharsetUtil;
 
 import java.text.SimpleDateFormat;
@@ -43,6 +45,30 @@ public class HandlerClientReconnHeart extends SimpleChannelInboundHandler<ByteBu
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("客户端掉线");
+        System.out.println("掉线");
+
+        //检测到掉线后，重新开始连接
+        new AppClientReconnHeart("127.0.0.1",18080);
+    }
+
+    //
+
+    //超时检测1 只需要重写下方接口
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        if(evt instanceof IdleStateEvent){
+            //evt消息 如果读超时
+            IdleStateEvent event = (IdleStateEvent) evt;
+            if (event.state() == IdleState.READER_IDLE){
+
+                System.out.println("客户端消息超时");
+                ctx.close();
+                //检测到读超时，就向服务器端发送一个消息包
+                SimpleDateFormat df =new SimpleDateFormat("HH:mm:ss SSS");//设置日期格式
+                String strDate = df.format(new Date());
+                ctx.writeAndFlush(Unpooled.copiedBuffer("我是心跳消息"+strDate +"\r\n",CharsetUtil.UTF_8));
+            }
+
+        }
     }
 }
