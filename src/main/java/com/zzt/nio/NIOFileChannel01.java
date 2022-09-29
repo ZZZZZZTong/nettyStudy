@@ -9,8 +9,8 @@ public class NIOFileChannel01 {
 
     public static void main(String[] args) throws Exception {
 
-        //汉字占3个字节
-        String str = "hello,尚硅谷";
+        //汉字占3个字节 windows换行占2个字节 mac只占1个字节，英文字母和符号1个字节
+        String str = "hello";
 
         //创建一个输出流->channel
         FileOutputStream fileOutputStream = new FileOutputStream("/Users/bytedance/zzt.txt");
