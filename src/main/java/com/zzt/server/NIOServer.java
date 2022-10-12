@@ -10,6 +10,7 @@ public class NIOServer {
 
     public static void main(String[] args) throws Exception {
 
+        //创建ServerSocketChannel -> 类比serverSocket
         ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
 
         //得到一个Selector对象
@@ -25,6 +26,7 @@ public class NIOServer {
 
         while (true){
             //这里等待1秒，如果没有事件发生，返回
+            //select是阻塞
             if (selector.select(1000)==0){
                 System.out.println("服务器等待了1秒，无连接");
                 continue;
@@ -34,6 +36,7 @@ public class NIOServer {
             //2.selector.selectedKeys()返回关注事件的集合
             //通过 selectionKeys 反向获取通道
             Set<SelectionKey> selectionKeys = selector.selectedKeys();
+            System.out.println("selectionKeys 的数量："+selectionKeys.size());
             //遍历Set<SelectionKey> 使用迭代器遍历
             Iterator<SelectionKey> keyIterator = selectionKeys.iterator();
 
@@ -42,11 +45,17 @@ public class NIOServer {
                 SelectionKey key = keyIterator.next();
                 //根据key 对应的通道发生的事件做响应的处理
                 //如果是OP_ACCEPT 事件，有新的客户端连接
+                //责任链
                 if(key.isAcceptable()){
                     // 给该客户端生成一个socketChannel
                     SocketChannel socketChannel = serverSocketChannel.accept();
+
+                    System.out.println("客户端连接成功，客户端是："+socketChannel.hashCode());
                     //将socketChannel 注册到selector,关注事件为OP_READ，给关联一个buffer
+
+                    socketChannel.configureBlocking(false);
                     socketChannel.register(selector,SelectionKey.OP_READ, ByteBuffer.allocate(1024));
+
                 }
 
                 if (key.isReadable()){//如果发生OP_READ
@@ -54,10 +63,18 @@ public class NIOServer {
                     SocketChannel channel = (SocketChannel) key.channel();
                     //获取到该channel关联的buffer
                     ByteBuffer buffer = (ByteBuffer) key.attachment();
-                    channel.read(buffer);
-
+                    int len =  channel.read(buffer);
+                    //这里未对客户端是否关闭做监听 判断客户端是否关闭连接
+                    if (len == -1){
+                        channel.close();
+                        keyIterator.remove();
+                        continue;
+                    }
+                    System.out.println(new String(buffer.array()).length());
                     System.out.println("form 客户端" + new String(buffer.array()));
                 }
+                keyIterator.remove();
+
             }
 
         }
