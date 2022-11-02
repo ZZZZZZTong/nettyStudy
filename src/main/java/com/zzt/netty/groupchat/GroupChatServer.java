@@ -35,7 +35,7 @@ public class GroupChatServer {
                         //向pipeline加入编码器
                         pipeline.addLast("encoder",new StringEncoder());
                         //加入自己业务处理Handler
-                        pipeline.addLast(null);
+                        pipeline.addLast(new GroupChatServerHandler());
                     }
                 });
         System.out.println("netty 服务器启动");
