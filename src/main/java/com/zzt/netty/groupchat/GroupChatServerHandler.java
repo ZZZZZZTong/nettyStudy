@@ -8,8 +8,14 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GroupChatServerHandler extends SimpleChannelInboundHandler<String> {
+
+    //使用一个hashmap管理
+    public static Map<String,Channel> channelMap = new HashMap<>();
+
 
     //定义一个channle组 ，管理所有的channel
     private static ChannelGroup channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);

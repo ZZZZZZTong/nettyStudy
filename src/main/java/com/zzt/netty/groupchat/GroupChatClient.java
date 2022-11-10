@@ -55,8 +55,6 @@ public class GroupChatClient {
                 //通过channel 发送到服务器端
                 channel.writeAndFlush(msg+"\r\n");
             }
-
-
         }finally {
             eventExecutors.shutdownGracefully();
         }
